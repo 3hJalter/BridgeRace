@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class GlobalFunction : MonoBehaviour
 {
-    public static Color GetColorFromEnum(PlayerColor color)
+    public static Color GetColorByCharacter(CharacterBelong color)
     {
         var returnColor = color switch
         {
-            PlayerColor.Blue => Color.blue,
-            PlayerColor.Green => Color.green,
-            PlayerColor.Yellow => Color.yellow,
-            PlayerColor.Red => Color.red,
+            CharacterBelong.Player => Color.blue,
+            CharacterBelong.Bot2 => Color.green,
+            CharacterBelong.Bot3 => Color.yellow,
+            CharacterBelong.Bot1 => Color.red,
             _ => Color.grey
         };
 

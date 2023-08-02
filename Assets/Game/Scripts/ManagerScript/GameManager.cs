@@ -8,7 +8,7 @@ public class GameManager : Singleton<GameManager>
 {
     //[SerializeField] UserData userData;
     //[SerializeField] CSVData csv;
-    //private static GameState gameState = GameState.MainMenu;
+    private static GameState _gameState = GameState.MainMenu;
 
     // Start is called before the first frame update
     protected void Awake()
@@ -30,17 +30,17 @@ public class GameManager : Singleton<GameManager>
 
         //ChangeState(GameState.MainMenu);
 
-        UIManager.Ins.OpenUI<MianMenu>();
+        // UIManager.Ins.OpenUI<MianMenu>();
     }
 
-    //public static void ChangeState(GameState state)
-    //{
-    //    gameState = state;
-    //}
+    public static void ChangeState(GameState state)
+    {
+    _gameState = state;
+    }
 
-    //public static bool IsState(GameState state)
-    //{
-    //    return gameState == state;
-    //}
+    public static bool IsState(GameState state)
+    {
+    return _gameState == state;
+    }
   
 }

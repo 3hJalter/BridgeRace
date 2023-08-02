@@ -6,15 +6,18 @@ TagManager:
   tags:
   - FxTemporaire
   - Enemy
+  - Wall
+  - Ground
+  - Brick
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - 
-  - 
+  - Brick
+  - Character
   - 
   - 
   - 

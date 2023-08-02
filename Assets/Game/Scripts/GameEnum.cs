@@ -4,16 +4,17 @@ using UnityEngine;
 
 public enum GameState
 {
-    
+    MainMenu,
+    InGame,
 }
 
-public enum PlayerColor
+public enum CharacterBelong
 {
     None,
-    Blue,
-    Red,
-    Green,
-    Yellow,
+    Player,
+    Bot1,
+    Bot2,
+    Bot3,
 }
 
 public enum GameTag

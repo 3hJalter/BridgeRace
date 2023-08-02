@@ -6,12 +6,17 @@ using UnityEngine.Serialization;
 
 public class Brick : GameUnit
 {
-    [SerializeField] private PlayerColor playerColor;
-    [SerializeField] private Renderer renderColor;
+    [SerializeField] private CharacterBelong characterBelong;
+    [SerializeField] private Renderer render;
 
-    public Renderer RenderColor => renderColor;
+    public Renderer Render => render;
 
     [SerializeField] private bool isAttached;
+
+    [SerializeField] private Collider collider;
+    [SerializeField] private Rigidbody rb;
+
+    public Rigidbody Rb => rb;
 
     public bool IsAttached
     {
@@ -19,7 +24,7 @@ public class Brick : GameUnit
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         OnInit();
     }
@@ -27,17 +32,29 @@ public class Brick : GameUnit
     private void OnInit()
     {
         isAttached = false;
-        renderColor.material.color = GlobalFunction.GetColorFromEnum(playerColor);
+        render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (isAttached) return;
         if (!other.CompareTag(GameTag.Player.ToString()) &&
             !other.CompareTag(GameTag.Enemy.ToString())) return;
         var character = other.GetComponent<CharacterManager>();
-        if (playerColor != PlayerColor.None && character.playerColor != playerColor) return;
+        if (characterBelong != CharacterBelong.None && character.characterBelong != characterBelong) return;
         SimplePool.Despawn(this);
-        character.AttachBrick(this);
+        character.AttachBrick();
     }
-    
+
+   
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform.CompareTag(GameTag.Player.ToString()))
+            Physics.IgnoreCollision(collider, collision.collider);
+    }
+
+    private void OnEnable()
+    {
+        OnInit();
+    }
 }
