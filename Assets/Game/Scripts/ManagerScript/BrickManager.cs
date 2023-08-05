@@ -14,8 +14,7 @@ public class BrickManager : Singleton<BrickManager>
     [SerializeField] private float offsetSpawnX = 1f;
     [SerializeField] private float offsetSpawnY = 0.5f;
     [SerializeField] private float offsetSpawnZ = 1f;
-    private float _initOffsetSpawnX;
-    
+
     [Header("List")] 
     [SerializeField] private List<Brick> bricks;
     [SerializeField] private List<Vector3> usedPos;
@@ -25,7 +24,8 @@ public class BrickManager : Singleton<BrickManager>
     // Start is called before the first frame update
     private void Start()
     {
-        InitSpawnBrick(stageRender1);
+        OnInit();
+        
     }
 
     // Update is called once per frame
@@ -39,44 +39,59 @@ public class BrickManager : Singleton<BrickManager>
 
     private void OnInit()
     {
-        _initOffsetSpawnX = offsetSpawnX;
         bricks = new List<Brick>();
-        usedPos = nonUsedPos = new List<Vector3>();
+        nonUsedPos = new List<Vector3>();
+        usedPos = new List<Vector3>();
+        GetSpawnPositionOnStage(stageRender1);
+        // Test Spawn
+        while (nonUsedPos.Count > 0)
+        {
+            SpawnBrick(0, CharacterBelong.Player);
+            SpawnBrick(0, CharacterBelong.Bot1);
+            SpawnBrick(0, CharacterBelong.Bot2);
+            SpawnBrick(0, CharacterBelong.Bot3);
+        }
+             
     }
 
     // Debug, remove when done
     [SerializeField] private Vector3 stageSize;
     [SerializeField] private Vector3 brickSize;
     [SerializeField] private LayerMask groundLayer;
-    private void InitSpawnBrick(Renderer stage)
+    private void GetSpawnPositionOnStage(Renderer stage)
     {
-        Debug.Log("Spawn brick on " + stage.name);
         var stagePos = stage.transform.position;
-        Debug.Log("Stage Position: " + stagePos);
         stageSize = stage.bounds.size;
-        Debug.Log("Stage size: " + stageSize);
-        var initPos = stagePos + 
-                      new Vector3(offsetSpawnX, offsetSpawnY, offsetSpawnZ) + 
-                      new Vector3(-stageSize.x/2, stageSize.y/2, -stageSize.z/2);
-        
-        // Change logic here, need two loop for x-axis spawn and z-axis spawn
-        // First loop i: i++, j = 0 when second loop out,
-        // break when offsetSpawnZ * i larger than stageSize.z/2 + stagePos.z of this stage
-        // Second loop j : j++,
-        // new initPos = stagePos + V3(offsetSpawnX * j, offsetSpawnY, offsetSpawnZ * i) +
-        //              V3(-stageSize.x/2, stageSize.y/x, -stageSize.z/2),
-        // Check if initPos hit Ground (ignore Player and StartPoint), if yes, add this to nonUsedPos
-        // Spawn Brick on this pos, change this Pos to usedBrick -> function SpawnBrick(int nonUsedIndex)
-        // break when offsetSpawnX * j larger than stageSize.x/2 + stagePos.x of this stage
-         
-        // Test with one brick
-        Debug.Log("Init Pos = " + initPos);
-        // var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        // cube.transform.position = initPos;
-        if (!Physics.Raycast(initPos, Vector3.down, 2f, groundLayer)) return;
+        var i = 1;
+        while (offsetSpawnZ * i <= stageSize.z - 1)
+        {
+            var j = 1;
+            while (offsetSpawnX * j <= stageSize.x - 1)
+            {
+                var initPos = stagePos + 
+                              new Vector3(offsetSpawnX * j, offsetSpawnY, offsetSpawnZ * i) + 
+                              new Vector3(-stageSize.x/2, stageSize.y/2, -stageSize.z/2);
+                if (!Physics.Raycast(initPos, Vector3.down, 2f, groundLayer))
+                {
+                    j++;
+                    continue;
+                }
+                nonUsedPos.Add(initPos);
+                j++;
+            }
+            i++;
+        }
+    }
+
+    private void SpawnBrick(int nonUsedIndex, CharacterBelong characterBelong)
+    {
+        if (nonUsedPos.Count <= nonUsedIndex) return;
         var brick = SimplePool.Spawn<Brick>(PoolType.Brick, transform);
-        brickSize = brick.Render.bounds.size;
-        Debug.Log("Brick size: " + brickSize);
-        brick.transform.position = initPos;
+        var pos = nonUsedPos[nonUsedIndex];
+        brick.transform.position = pos;
+        brick.CharacterBelong = characterBelong;
+        nonUsedPos.RemoveAt(nonUsedIndex);
+        usedPos.Add(pos);
+        
     }
 }

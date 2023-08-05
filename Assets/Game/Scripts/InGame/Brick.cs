@@ -7,6 +7,12 @@ using UnityEngine.Serialization;
 public class Brick : GameUnit
 {
     [SerializeField] private CharacterBelong characterBelong;
+
+    public CharacterBelong CharacterBelong
+    {
+        set => characterBelong = value;
+    }
+
     [SerializeField] private Renderer render;
 
     public Renderer Render => render;
@@ -37,6 +43,7 @@ public class Brick : GameUnit
 
     private void OnTriggerEnter(Collider other)
     {
+        // Check if GameManager.GameState == GameState.isPlaying, if not return
         if (isAttached) return;
         if (!other.CompareTag(GameTag.Player.ToString()) &&
             !other.CompareTag(GameTag.Enemy.ToString())) return;

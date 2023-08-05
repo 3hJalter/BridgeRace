@@ -30,7 +30,7 @@ public class CharacterManager : MonoBehaviour
         brick.Rb.constraints = RigidbodyConstraints.FreezeAll;
         brick.Rb.isKinematic = true;
         brick.Render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
-        brick.transform.localPosition = Vector3.zero + Vector3.up * bricks.Count;
+        brick.transform.localPosition = Vector3.zero + Vector3.up * bricks.Count * 0.1f;
         bricks.Add(brick);
     }
 
