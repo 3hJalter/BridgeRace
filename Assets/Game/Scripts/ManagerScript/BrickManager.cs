@@ -1,11 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 public class BrickManager : Singleton<BrickManager>
 {
-    [Header("Map Stage")] 
+    [Header("Map Stage")]
     [SerializeField] private Renderer stageRender1;
     [SerializeField] private Renderer stageRender2;
     [SerializeField] private Renderer stageRender3;
@@ -17,15 +17,15 @@ public class BrickManager : Singleton<BrickManager>
 
     [Header("List")] 
     [SerializeField] private List<Brick> bricks;
-    [SerializeField] private List<Vector3> usedPos;
-    [SerializeField] private List<Vector3> nonUsedPos;
+    [SerializeField] public List<Vector3> usedPos;
+    [SerializeField] public List<Vector3> nonUsedPos;
 
-
+    [SerializeField] private List<Stage> stageList;
+    
     // Start is called before the first frame update
     private void Start()
     {
         OnInit();
-        
     }
 
     // Update is called once per frame
@@ -51,7 +51,19 @@ public class BrickManager : Singleton<BrickManager>
             SpawnBrick(0, CharacterBelong.Bot2);
             SpawnBrick(0, CharacterBelong.Bot3);
         }
-             
+        // New code
+        foreach (var stage in stageList)
+        {
+            stage.OnInit();
+        }
+
+        /*while (stageList[1].nonUsedPos.Count > 0)
+        {
+            SpawnBrick(0, stageList[0], CharacterBelong.Player);
+            SpawnBrick(0, stageList[0], CharacterBelong.Bot1);
+            SpawnBrick(0, stageList[0], CharacterBelong.Bot2);
+            SpawnBrick(0, stageList[0], CharacterBelong.Bot3);
+        }*/
     }
 
     // Debug, remove when done
@@ -83,15 +95,27 @@ public class BrickManager : Singleton<BrickManager>
         }
     }
 
-    private void SpawnBrick(int nonUsedIndex, CharacterBelong characterBelong)
+    public void SpawnBrick(int nonUsedIndex, CharacterBelong characterBelong)
     {
         if (nonUsedPos.Count <= nonUsedIndex) return;
         var brick = SimplePool.Spawn<Brick>(PoolType.Brick, transform);
         var pos = nonUsedPos[nonUsedIndex];
         brick.transform.position = pos;
-        brick.CharacterBelong = characterBelong;
+        brick.initPos = pos;
+        brick.characterBelong = characterBelong;
         nonUsedPos.RemoveAt(nonUsedIndex);
         usedPos.Add(pos);
-        
+    }
+
+    private void SpawnBrick(int nonUsedIndex, Stage stage, CharacterBelong characterBelong)
+    {
+        if (stage.nonUsedPos.Count <= nonUsedIndex) return;
+        var brick = SimplePool.Spawn<Brick>(PoolType.Brick, transform);
+        var pos = stage.nonUsedPos[nonUsedIndex];
+        brick.transform.position = pos;
+        brick.initPos = pos;
+        brick.characterBelong = characterBelong;
+        stage.nonUsedPos.RemoveAt(nonUsedIndex);
+        stage.usedPos.Add(pos);
     }
 }

@@ -7,7 +7,7 @@ public class AgentMovement : MonoBehaviour
 {
     [SerializeField] private Transform model;
     [SerializeField] private NavMeshAgent navMeshAgent;
-    [SerializeField] private float maxZPositionMove = 100f;
+    [SerializeField] public float maxZPositionMove = 100f;
     // Start is called before the first frame update
     void Start()
     {

@@ -6,12 +6,9 @@ using UnityEngine.Serialization;
 
 public class Brick : GameUnit
 {
-    [SerializeField] private CharacterBelong characterBelong;
-
-    public CharacterBelong CharacterBelong
-    {
-        set => characterBelong = value;
-    }
+    public Stage stage;
+    public CharacterBelong characterBelong;
+    public Vector3 initPos;
 
     [SerializeField] private Renderer render;
 
@@ -39,6 +36,8 @@ public class Brick : GameUnit
     {
         isAttached = false;
         render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
+        rb.constraints = RigidbodyConstraints.None;
+        rb.isKinematic = false;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -49,8 +48,11 @@ public class Brick : GameUnit
             !other.CompareTag(GameTag.Enemy.ToString())) return;
         var character = other.GetComponent<CharacterManager>();
         if (characterBelong != CharacterBelong.None && character.characterBelong != characterBelong) return;
+        stage.brickList.Remove(this);
         SimplePool.Despawn(this);
         character.AttachBrick();
+        stage.usedPos.Remove(initPos);
+        stage.nonUsedPos.Add(initPos);
     }
 
    

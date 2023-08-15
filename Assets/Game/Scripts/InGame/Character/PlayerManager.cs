@@ -8,51 +8,57 @@ using UnityEngine.Serialization;
 
 public class PlayerManager : CharacterManager
 {
-    // Control Movement
-    [SerializeField] private float horizontal;
-    [SerializeField] private float vertical;
-    [SerializeField] private float speed;
-    [SerializeField] private Rigidbody rb;
-    [SerializeField] private Transform model;
-
-    [SerializeField] private NavMeshAgent navAgent;
-    // Start is called before the first frame update
-    // private new void Start()
-    // {
-    //     base.Start();
-    // }
-
-    // Update is called once per frame
     void Update()
     {
-        // Control();
+
+        var input = new Vector2(CnInputManager.GetAxis("Horizontal"), CnInputManager.GetAxis("Vertical"));
+        if (input.magnitude < 0) return;
+        if (Mathf.Abs(input.y) > 0.01f)
+            Move(new Vector3(input.x, 0, input.y));
     }
-
-
-    private void FixedUpdate()
+    
+    private void Move(Vector2 input)
     {
-        // Control();
-    }
-
-    [SerializeField] private Vector3 _direction = Vector3.zero;
-    [SerializeField] private Vector3 target = Vector3.zero;
-    private void Control()
-    {
-        horizontal = CnInputManager.GetAxis("Horizontal");
-        vertical = CnInputManager.GetAxis("Vertical");
-        if (navAgent.remainingDistance > navAgent.stoppingDistance)
+        var thisTransform = transform;
+        var destination = thisTransform.position + 
+                          thisTransform.right * (input.x * 0.3f) + 
+                          thisTransform.forward * (input.y * 0.3f);
+        model.LookAt(destination);
+        if (onStair)
         {
-            
-            return;
+            if (destination.z > maxPlayerPosZ)
+                destination.z = maxPlayerPosZ;
         }
-        if (horizontal == 0 && vertical == 0) return;
-        _direction = new Vector3(horizontal * speed * Time.deltaTime, 0, vertical * speed * Time.deltaTime);
-        // rb.velocity = direction;
-        // model.LookAt(model.position + new Vector3(horizontal, 0, vertical));
-        
-        target = transform.position + _direction;
-        // model.LookAt(target);
-        navAgent.destination = target;
-        // navAgent.Move(target);
+        else
+        {
+            if (destination.z < minPlayerPosZ)
+                destination.z = minPlayerPosZ;
+        }
+            
+        navMeshAgent.destination = destination;
+    }
+    private void Move(Vector3 direct)
+    {
+        Vector3 movement = Camera.main.transform.TransformDirection(direct);
+        movement.y = 0f;
+
+        if (movement != Vector3.zero)
+        {
+            Quaternion targetRos = Quaternion.LookRotation(movement);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRos, 10f * Time.deltaTime);
+        }
+
+        var destination = transform.position + movement * (3f * Time.deltaTime);
+        if (onStair)
+        {
+            if (destination.z - maxPlayerPosZ > 0.1f)
+                return;
+        }
+        else
+        {
+            if (minPlayerPosZ - destination.z > 0.1f)
+                return;
+        }
+        navMeshAgent.Move(movement * (3f * Time.deltaTime));
     }
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
     private IState<Character> currentState;
-
     private void Start()
     {
         ChangeState(new IdleState());

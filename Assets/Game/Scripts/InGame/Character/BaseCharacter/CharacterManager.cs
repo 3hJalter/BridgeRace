@@ -1,16 +1,27 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
+using Random = System.Random;
 
 public class CharacterManager : MonoBehaviour
 {
+    public Stage currentStage;
     public CharacterBelong characterBelong;
     [SerializeField] private Transform brickContainer;
     [SerializeField] private Renderer renderColor;
     [SerializeField] private List<Brick> bricks;
 
+    [SerializeField] protected Transform model;
+    [SerializeField] protected NavMeshAgent navMeshAgent;
+    public List<Brick> Bricks => bricks;
+    public Stair stairPlayerOn;
+    public bool onStair;
+    public float maxPlayerPosZ;
+    public float minPlayerPosZ;
     // Start is called before the first frame update
     protected void Start()
     {
@@ -19,6 +30,7 @@ public class CharacterManager : MonoBehaviour
 
     private void OnInit()
     {
+        currentStage = StageManager.Ins.StagesList[0];
         bricks = new List<Brick>();
         renderColor.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
     }
@@ -34,7 +46,7 @@ public class CharacterManager : MonoBehaviour
         bricks.Add(brick);
     }
 
-    private void DetachBrick(int num, bool hitByPlayer)
+    public void DetachBrick(int num, bool hitByPlayer)
     {
         if (num >= bricks.Count) num = bricks.Count;
         for (var i = 0; i < num; i++)
@@ -45,6 +57,12 @@ public class CharacterManager : MonoBehaviour
             }
             else
             {
+                var brick = bricks.Last();
+                SimplePool.Despawn(brick);
+                bricks.Remove(brick);
+                Debug.Log("De-spawn Brick");
+                Random rnd = new Random();
+                currentStage.OnSpawnBrick(characterBelong);
                 // Detach brick logic
             }
         }
