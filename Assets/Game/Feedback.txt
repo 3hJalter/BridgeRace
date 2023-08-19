@@ -1,0 +1,8 @@
+﻿-- Cải thiện --
+Tối ưu luồng code -> Các Class nên tác động nhau qua hàm thay vài qua biến của các class
+Các Class không nên gọi trực tiếp qúa nhiều Manager, thường chỉ gọi 1 function cụ thể
+Với Các object dùng chung nhiều màu 
+	-> Tạo Material tương ứng 
+	-> Enable GPU instancin 
+	-> Tạo một ScriptableObject quản lý list màu, khi cần render màu thì gọi qua ScritableObject
+Các Manager nên có các hàm đặc trưng(VD LevelManager: OnInit, OnStart, OnWin, OnLose,...), kèm theo OnInit các Object mà nó quản lý thay vì Object tự OnInit
