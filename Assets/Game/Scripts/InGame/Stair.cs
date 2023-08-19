@@ -1,51 +1,77 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class Stair : MonoBehaviour
 {
-    [SerializeField] private Renderer stairRenderer;
-
-    [SerializeField] private Transform door;
     [SerializeField] private Transform startPoint;
-    
-    [SerializeField] private float zPoint;
+
     [SerializeField] private float offsetZ = 0.25f;
 
     [SerializeField] private List<StairBrick> stairBrick;
+
     [SerializeField] private List<Vector3> brickPos;
-    
+
+    public List<StairBrick> StairBrick => stairBrick;
+
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         brickPos = new List<Vector3>();
+        for (int i = 0; i < stairBrick.Count; i++) brickPos.Add(stairBrick[i].thisTransform.position);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnInit()
     {
-        foreach (var brick in stairBrick)
+        for (int i = 0; i < stairBrick.Count; i++)
         {
-            brickPos.Add(brick.transform.position);
+            stairBrick[i].OnInit();
         }
     }
+
+    public int CountBrickBelongCharacterOnStair(CharacterBelong characterBelong)
+    {
+        return stairBrick.Count(brick => brick.CharacterBelong == characterBelong);
+    }
+
+    public bool CheckIfBelongCharacterOnStairInLargest(CharacterBelong characterBelong)
+    {
+        Dictionary<CharacterBelong, int> characterBrickCounts = new();
+
+        foreach (StairBrick brick in stairBrick.Where(brick => brick.CharacterBelong != CharacterBelong.None))
+        {
+            if (!characterBrickCounts.ContainsKey(brick.CharacterBelong))
+                characterBrickCounts[brick.CharacterBelong] = 0;
+
+            characterBrickCounts[brick.CharacterBelong]++;
+        }
+
+        int characterBelongBrickCount = characterBrickCounts[characterBelong];
+        int maxBrickCount = characterBrickCounts.Values.Max();
+
+        return characterBelongBrickCount == maxBrickCount;
+    }
+
 
     public float GetCharacterMaxPosZ(CharacterBelong characterBelong, int playerBrickNums)
     {
-        var i = stairBrick.Count(brick => brick.CharacterBelong == characterBelong);
-        if (i + playerBrickNums >= stairBrick.Count) return stairBrick.Last().transform.position.z + offsetZ;
-        return startPoint.position.z + (i + playerBrickNums) * offsetZ;
+        int i = CountBrickBelongCharacterOnStair(characterBelong);
+        if (i + playerBrickNums >= stairBrick.Count) return stairBrick.Last().thisTransform.position.z + offsetZ + 0.5f;
+        return startPoint.position.z + (i + playerBrickNums) * offsetZ + 0.1f;
     }
-    
-    private void OnTriggerEnter(Collider other)
+
+    public Vector3 GetStairPosForAI(CharacterBelong characterBelong, int playerBrickNums)
     {
-        if (other.CompareTag("Player"))
+        int i = CountBrickBelongCharacterOnStair(characterBelong);
+        if (i + playerBrickNums >= stairBrick.Count)
         {
-            Debug.Log("TriggerPlayer");
+            Vector3 lastBrickPos = stairBrick.Last().thisTransform.position;
+            Vector3 destination = new(lastBrickPos.x, lastBrickPos.y, lastBrickPos.z + offsetZ + 0.5f);
+            return destination;
         }
+
+        int brickDestinationIndex = i + playerBrickNums;
+        Vector3 brickDestinationPos = stairBrick[brickDestinationIndex].thisTransform.position;
+        return new Vector3(brickDestinationPos.x, brickDestinationPos.y, brickDestinationPos.z);
     }
 }

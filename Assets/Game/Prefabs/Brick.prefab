@@ -174,7 +174,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   poolType: 5
+  thisTransform: {fileID: 9069298083585275197}
+  stage: {fileID: 0}
   characterBelong: 0
+  initPos: {x: 0, y: 0, z: 0}
   render: {fileID: 9069298082935011412}
   isAttached: 0
   collider: {fileID: 2276301080761099267}

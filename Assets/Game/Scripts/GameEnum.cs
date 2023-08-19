@@ -13,16 +13,15 @@ public enum PlayerState
 public enum PlayerAnim
 {
     Idle,
-    Move,
-    Hit,
-    Win, 
-    Lose
+    Running,
 }
 
 public enum GameState
 {
     MainMenu,
     InGame,
+    PauseGame,
+    EndGame,
 }
 
 public enum CharacterBelong

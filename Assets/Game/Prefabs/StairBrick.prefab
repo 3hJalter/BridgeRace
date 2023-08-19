@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bdd85c63efdb664bbe94c80f34530be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  thisTransform: {fileID: 3017427505272418839}
   characterBelong: 0
   model: {fileID: 3017427505654185840}
   render: {fileID: 3017427505654185854}

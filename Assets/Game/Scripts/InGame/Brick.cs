@@ -1,35 +1,58 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class Brick : GameUnit
 {
+    public Transform thisTransform;
     public Stage stage;
     public CharacterBelong characterBelong;
     public Vector3 initPos;
 
     [SerializeField] private Renderer render;
 
-    public Renderer Render => render;
-
     [SerializeField] private bool isAttached;
 
-    [SerializeField] private Collider collider;
     [SerializeField] private Rigidbody rb;
 
-    public Rigidbody Rb => rb;
-
-    public bool IsAttached
-    {
-        set => isAttached = value;
-    }
 
     // Start is called before the first frame update
     private void Start()
     {
         OnInit();
+    }
+
+    private void OnEnable()
+    {
+        OnInit();
+    }
+    
+    public void SetBrickToPlayer(CharacterBelong inputCb)
+    {
+        isAttached = true;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+        rb.isKinematic = true;
+        characterBelong = inputCb;
+        render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
+    }
+
+    public void SetBrickToStage(Vector3 pos, CharacterBelong inputCb, Stage inputStage)
+    {
+        thisTransform.position = pos;
+        initPos = pos;
+        characterBelong = inputCb;
+        render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
+        stage = inputStage;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (isAttached) return;
+        if (!other.CompareTag(GameTag.Player.ToString())) return;
+        CharacterManager character = GlobalFunction.GenCollectedCharacterManager(other);
+        if (characterBelong != CharacterBelong.None && character.characterBelong != characterBelong) return;
+        characterBelong = character.characterBelong;
+        stage.DeSpawnBrick(this);
+        character.AttachBrick();
+        
     }
 
     private void OnInit()
@@ -38,32 +61,5 @@ public class Brick : GameUnit
         render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
         rb.constraints = RigidbodyConstraints.None;
         rb.isKinematic = false;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        // Check if GameManager.GameState == GameState.isPlaying, if not return
-        if (isAttached) return;
-        if (!other.CompareTag(GameTag.Player.ToString()) &&
-            !other.CompareTag(GameTag.Enemy.ToString())) return;
-        var character = other.GetComponent<CharacterManager>();
-        if (characterBelong != CharacterBelong.None && character.characterBelong != characterBelong) return;
-        stage.brickList.Remove(this);
-        SimplePool.Despawn(this);
-        character.AttachBrick();
-        stage.usedPos.Remove(initPos);
-        stage.nonUsedPos.Add(initPos);
-    }
-
-   
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.transform.CompareTag(GameTag.Player.ToString()))
-            Physics.IgnoreCollision(collider, collision.collider);
-    }
-
-    private void OnEnable()
-    {
-        OnInit();
     }
 }

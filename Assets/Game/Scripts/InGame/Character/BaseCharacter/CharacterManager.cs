@@ -1,96 +1,88 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
-using Random = System.Random;
 
 public class CharacterManager : MonoBehaviour
 {
+    [SerializeField] private Transform thisTransform;
     public Stage currentStage;
     public CharacterBelong characterBelong;
     [SerializeField] private Transform brickContainer;
     [SerializeField] private Renderer renderColor;
-    [SerializeField] private List<Brick> bricks;
+    [SerializeField] private List<Brick> bricks = new();
+    [SerializeField] private NavMeshAgent navMeshAgent;
+    [SerializeField] private Animator animator;
+    [FormerlySerializedAs("_initPos")] [SerializeField] private Vector3 initPos;
 
-    [SerializeField] protected Transform model;
-    [SerializeField] protected NavMeshAgent navMeshAgent;
-    public List<Brick> Bricks => bricks;
-    public Stair stairPlayerOn;
-    public bool onStair;
-    public float maxPlayerPosZ;
-    public float minPlayerPosZ;
-    // Start is called before the first frame update
-    protected void Start()
+    public Vector3 InitPos
     {
-        OnInit();
+        set => initPos = value;
     }
 
-    private void OnInit()
+    public PlayerAnim PlayerAnim { get; private set; } = PlayerAnim.Idle;
+
+    public NavMeshAgent NavMeshAgent => navMeshAgent;
+
+    [FormerlySerializedAs("stairPlayerOn")] public Stair stairCharacterOn;
+    public float maxPlayerPosZ;
+    public float minPlayerPosZ;
+
+    public List<Brick> Bricks => bricks;
+
+    public void OnInit()
     {
-        currentStage = StageManager.Ins.StagesList[0];
-        bricks = new List<Brick>();
+        thisTransform.position = initPos;
+        currentStage = LevelManager.Ins.StagesList[0];
+        ClearBrickList();
         renderColor.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
+        maxPlayerPosZ = 100;
+        minPlayerPosZ = -100;
+        navMeshAgent.enabled = true;
     }
 
     public void AttachBrick()
     {
-        var brick = SimplePool.Spawn<Brick>(PoolType.Brick, brickContainer);
-        brick.IsAttached = true;
-        brick.Rb.constraints = RigidbodyConstraints.FreezeAll;
-        brick.Rb.isKinematic = true;
-        brick.Render.material.color = GlobalFunction.GetColorByCharacter(characterBelong);
-        brick.transform.localPosition = Vector3.zero + Vector3.up * bricks.Count * 0.1f;
+        Brick brick = SimplePool.Spawn<Brick>(PoolType.Brick, brickContainer);
+        brick.SetBrickToPlayer(characterBelong);
+        const float brickHeight = 0.1f;
+        brick.thisTransform.localPosition = Vector3.zero + Vector3.up * bricks.Count * brickHeight;
         bricks.Add(brick);
     }
 
-    public void DetachBrick(int num, bool hitByPlayer)
+    public void DetachBrick(int num)
     {
         if (num >= bricks.Count) num = bricks.Count;
-        for (var i = 0; i < num; i++)
+        for (int i = 0; i < num; i++)
         {
-            if (hitByPlayer)
-            {
-                // Drop brick logic
-            }
-            else
-            {
-                var brick = bricks.Last();
-                SimplePool.Despawn(brick);
-                bricks.Remove(brick);
-                Debug.Log("De-spawn Brick");
-                Random rnd = new Random();
-                currentStage.OnSpawnBrick(characterBelong);
-                // Detach brick logic
-            }
+            Brick brick = bricks.Last();
+            SimplePool.Despawn(brick);
+            bricks.Remove(brick);
+            // Spawn new brick to stage
+            currentStage.OnSpawnBrick(characterBelong);
         }
     }
 
-    protected void ClearBrick()
+    public void ChangeAnim(PlayerAnim newPlayerAnim)
     {
-
+        string animString = newPlayerAnim.ToString();
+        animator.ResetTrigger(PlayerAnim.ToString());
+        animator.SetTrigger(animString);
+        PlayerAnim = newPlayerAnim;
     }
-
-    private void ChangeAnim()
+    
+    private void ClearBrickList()
     {
-
-    }
-
-    private void Stage()
-    {
-        
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (!collision.transform.CompareTag(GameTag.Player.ToString())) return;
-        var character = collision.transform.GetComponent<CharacterManager>();
-        if (character.bricks.Count >= bricks.Count)
+        if (bricks != null)
         {
-            DetachBrick(bricks.Count, true);
-            // Force player and do anim
-        }
+            for (int i = 0; i < bricks.Count; i++) 
+                SimplePool.Despawn(bricks[i]);  
+            bricks.Clear();
+        } else bricks = new List<Brick>();
+    }
+
+    public virtual void OnFinishGame()
+    {
     }
 }
